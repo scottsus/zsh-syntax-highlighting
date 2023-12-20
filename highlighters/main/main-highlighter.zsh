@@ -63,6 +63,7 @@
 : ${ZSH_HIGHLIGHT_STYLES[named-fd]:=none}
 : ${ZSH_HIGHLIGHT_STYLES[numeric-fd]:=none}
 : ${ZSH_HIGHLIGHT_STYLES[arg0]:=fg=green}
+: ${ZSH_HIGHLIGHT_STYLES[capital-command]:=fg=yellow}
 
 # Whether the highlighter should be called or not.
 _zsh_highlight_highlighter_main_predicate()
@@ -309,6 +310,11 @@ _zsh_highlight_highlighter_main_paint()
 {
   setopt localoptions extendedglob
 
+  local is_capital=0
+  if [[ ${(z)BUFFER}[1] == [A-Z]* ]]; then
+    is_capital=1
+  fi
+
   # At the PS3 prompt and in vared, highlight nothing.
   #
   # (We can't check this in _zsh_highlight_highlighter_main_predicate because
@@ -431,7 +437,13 @@ _zsh_highlight_highlighter_main_paint()
     (( end_ <= 0 )) && continue
     (( start < 0 )) && start=0 # having start<0 is normal with e.g. multiline strings
     _zsh_highlight_main_calculate_fallback $style
-    _zsh_highlight_add_highlight $start $end_ $reply
+    
+    # check for capital letters
+    if [[ $is_capital -eq 1 ]]; then
+      _zsh_highlight_add_highlight $start $end_ capital-command
+    else
+      _zsh_highlight_add_highlight $start $end_ $reply
+    fi
   done
 }
 
